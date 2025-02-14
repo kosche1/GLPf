@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Laravel\Sanctum\HasApiTokens;
+// use Laravel\Sanctum\HasApiTokens;
 use LevelUp\Experience\Models\Level;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
@@ -15,7 +15,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, GiveExperience, HasAchievements, HasStreaks, HasRoles;
+    use HasFactory, Notifiable, GiveExperience, HasAchievements, HasStreaks, HasRoles;
 
     protected $guard_name = 'web';
 
@@ -67,6 +67,11 @@ class User extends Authenticatable
     public function isStudent(): bool
     {
         return $this->role === 'student';
+    }
+
+    public function isTeacher(): bool
+    {
+        return $this->role === 'teacher';
     }
 
     /**

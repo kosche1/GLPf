@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
-use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Auth\Events\Registered;
 
 class RegisteredUserController extends Controller
 {
@@ -39,7 +40,28 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => 'student', // Set default role
         ]);
+
+        // Initialize user's experience and level
+        $user->experience = 0;
+        $user->save();
+
+        // Create initial level entry if using the level-up package
+        if (class_exists('LevelUp\Experience\Models\Level')) {
+            $level = \LevelUp\Experience\Models\Level::firstOrCreate(
+                ['level' => 1],
+                ['next_level_experience' => 100]
+            );
+            
+            DB::table(config('level-up.table'))->insert([
+                config('level-up.user.foreign_key') => $user->id,
+                'level_id' => $level->id,
+                'experience_points' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
 
         event(new Registered($user));
 

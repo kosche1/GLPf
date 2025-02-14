@@ -25,13 +25,20 @@
                 <!-- Password -->
                 <div class="space-y-2">
                     <x-label for="password" :value="__('Password')" />
-
+                    
                     <x-input-with-icon-wrapper>
                         <x-slot name="icon">
                             <x-heroicon-o-lock-closed aria-hidden="true" class="w-5 h-5" />
                         </x-slot>
-                        <x-input withicon id="password" class="block w-full" type="password" name="password" required
-                            autocomplete="current-password" placeholder="{{ __('Password') }}" />
+                        <x-password-input
+                            withicon
+                            id="password"
+                            class="block w-full"
+                            name="password"
+                            required
+                            autocomplete="current-password"
+                            placeholder="{{ __('Password') }}"
+                        />
                     </x-input-with-icon-wrapper>
                 </div>
 
@@ -60,7 +67,7 @@
 
                 @if (Route::has('register'))
                 <p class="text-sm text-gray-600 dark:text-gray-400">
-                    {{ __('Don’t have an account?') }}
+                    {{ __('Don\'t have an account?') }}
                     <a href="{{ route('register') }}" class="text-blue-500 hover:underline">
                         {{ __('Register') }}
                     </a>
