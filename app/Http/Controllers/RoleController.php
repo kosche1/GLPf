@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Facades\DB;
 
 class RoleController extends Controller
 {
@@ -13,7 +14,7 @@ class RoleController extends Controller
      */
     public function index()
     {
-        $roles = Role::with('permissions')->get();
+        $roles = Role::with(['permissions', 'users'])->get();
         return view('roles.index', compact('roles'));
     }
 
@@ -37,11 +38,20 @@ class RoleController extends Controller
             'permissions.*' => ['exists:permissions,id'],
         ]);
 
-        $role = Role::create(['name' => $request->name]);
-        $role->syncPermissions($request->permissions);
+        try {
+            DB::beginTransaction();
 
-        return redirect()->route('roles.index')
-            ->with('success', 'Role created successfully.');
+            $role = Role::create(['name' => $request->name]);
+            $role->syncPermissions($request->permissions);
+
+            DB::commit();
+
+            return redirect()->route('roles.index')
+                ->with('success', 'Role created successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error creating role: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -64,7 +74,9 @@ class RoleController extends Controller
         }
 
         $permissions = Permission::all();
-        return view('roles.edit', compact('role', 'permissions'));
+        $rolePermissions = $role->permissions->pluck('id')->toArray();
+        
+        return view('roles.edit', compact('role', 'permissions', 'rolePermissions'));
     }
 
     /**
@@ -83,11 +95,20 @@ class RoleController extends Controller
             'permissions.*' => ['exists:permissions,id'],
         ]);
 
-        $role->update(['name' => $request->name]);
-        $role->syncPermissions($request->permissions);
+        try {
+            DB::beginTransaction();
 
-        return redirect()->route('roles.index')
-            ->with('success', 'Role updated successfully.');
+            $role->update(['name' => $request->name]);
+            $role->syncPermissions($request->permissions);
+
+            DB::commit();
+
+            return redirect()->route('roles.index')
+                ->with('success', 'Role updated successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error updating role: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -99,14 +120,23 @@ class RoleController extends Controller
             return back()->with('error', 'Default roles cannot be deleted.');
         }
 
-        // Check if role is assigned to any users
-        if ($role->users()->exists()) {
-            return back()->with('error', 'Cannot delete role that is assigned to users.');
+        try {
+            DB::beginTransaction();
+
+            // Check if role is assigned to any users
+            if ($role->users()->exists()) {
+                throw new \Exception('Cannot delete role that is assigned to users.');
+            }
+
+            $role->delete();
+
+            DB::commit();
+
+            return redirect()->route('roles.index')
+                ->with('success', 'Role deleted successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', $e->getMessage());
         }
-
-        $role->delete();
-
-        return redirect()->route('roles.index')
-            ->with('success', 'Role deleted successfully.');
     }
 } 
