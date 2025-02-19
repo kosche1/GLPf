@@ -9,14 +9,16 @@ class DashboardController extends Controller
 {
     public function index(): View
     {
-        $user = auth()->user();
+        if (auth()->user()->hasRole('superadmin')) {
+            return view('dashboard.superadmin');
+        } elseif (auth()->user()->hasRole('admin')) {
+            return view('dashboard.admin');
+        } elseif (auth()->user()->hasRole('teacher')) {
+            return view('dashboard.teacher');
+        } elseif (auth()->user()->hasRole('student')) {
+            return view('dashboard.student');
+        }
         
-        // Ensure the role exists, default to student if not
-        $validRoles = ['student', 'admin', 'superadmin'];
-        $role = in_array($user->role, $validRoles) ? $user->role : 'student';
-        
-        return view("dashboard.{$role}", [
-            'user' => $user,
-        ]);
+        return view('dashboard');
     }
 } 

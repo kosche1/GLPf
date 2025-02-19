@@ -6,6 +6,26 @@
         </x-slot>
     </x-sidebar.link>
 
+    @if(auth()->user()->hasRole('teacher'))
+        <x-sidebar.dropdown title="Class Challenges" :active="Str::startsWith(request()->route()->uri(), 'challenges')">
+            <x-slot name="icon">
+                <x-heroicon-o-academic-cap class="flex-shrink-0 w-6 h-6" aria-hidden="true" />
+            </x-slot>
+
+            <x-sidebar.sublink title="All Challenges" 
+                href="{{ route('challenges.index') }}" 
+                :active="request()->routeIs('challenges.index')" />
+            
+            <x-sidebar.sublink title="Create Challenge" 
+                href="{{ route('challenges.create') }}" 
+                :active="request()->routeIs('challenges.create')" />
+            
+            <x-sidebar.sublink title="Student Progress" 
+                href="{{ route('challenges.progress') }}" 
+                :active="request()->routeIs('challenges.progress')" />
+        </x-sidebar.dropdown>
+    @endif
+
     @if(auth()->user()->hasRole('superadmin'))
         <x-sidebar.dropdown title="User Management" :active="Str::startsWith(request()->route()->uri(), ['users', 'roles', 'levels'])">
             <x-slot name="icon">

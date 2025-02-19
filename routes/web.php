@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\LevelController;
+use App\Http\Controllers\ChallengeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -31,6 +32,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('users/export', [UserController::class, 'export'])->name('users.export');
         Route::resource('roles', RoleController::class);
         Route::resource('levels', LevelController::class);
+    });
+
+    // Teacher specific routes
+    Route::middleware(['role:teacher'])->group(function () {
+        Route::get('/challenges', [ChallengeController::class, 'index'])->name('challenges.index');
+        Route::get('/challenges/create', [ChallengeController::class, 'create'])->name('challenges.create');
+        Route::post('/challenges', [ChallengeController::class, 'store'])->name('challenges.store');
+        Route::get('/challenges/progress', [ChallengeController::class, 'progress'])->name('challenges.progress');
+        Route::get('/challenges/{challenge}', [ChallengeController::class, 'show'])->name('challenges.show');
+        Route::get('/challenges/{challenge}/edit', [ChallengeController::class, 'edit'])->name('challenges.edit');
+        Route::put('/challenges/{challenge}', [ChallengeController::class, 'update'])->name('challenges.update');
+        Route::delete('/challenges/{challenge}', [ChallengeController::class, 'destroy'])->name('challenges.destroy');
     });
 
     // Multiple roles
